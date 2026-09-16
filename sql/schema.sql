@@ -1,3 +1,7 @@
+-- DROP TABLE IF EXISTS weather_features;
+-- DROP TABLE IF EXISTS weather;
+-- DROP TABLE IF EXISTS cities;
+
 CREATE TABLE IF NOT EXISTS cities (
     city_id SERIAL PRIMARY KEY,
     city VARCHAR(50) NOT NULL,
@@ -37,3 +41,4 @@ CREATE TABLE IF NOT EXISTS weather_features (
     risk_score INTEGER,
     risk_level VARCHAR(20)
 );
+

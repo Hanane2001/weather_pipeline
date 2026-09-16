@@ -21,7 +21,7 @@ def load_data():
         user=DB_USER,
         password=DB_PASSWORD
     )
-    print("connection with postgres is succesful")
+    print("connection with postgres is succesful") 
     cursor = connect.cursor()
     with open("sql/schema.sql", "r", encoding="utf-8") as f:
         sc = f.read()
