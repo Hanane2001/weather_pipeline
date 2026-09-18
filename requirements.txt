@@ -1,0 +1,8 @@
+pandas
+requests
+psycopg2-binary
+python-dotenv
+streamlit
+apache-airflow==2.9.0
+folium
+streamlit-folium

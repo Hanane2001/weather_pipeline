@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS weather_features;
-DROP TABLE IF EXISTS weather;
-DROP TABLE IF EXISTS cities;
+-- DROP TABLE IF EXISTS weather_features;
+-- DROP TABLE IF EXISTS weather;
+-- DROP TABLE IF EXISTS cities;
 
 CREATE TABLE IF NOT EXISTS cities (
     city_id SERIAL PRIMARY KEY,
-    city VARCHAR(50) NOT NULL,
+    city VARCHAR(50) NOT NULL UNIQUE,
     lat DOUBLE PRECISION,
     lng DOUBLE PRECISION,
     country VARCHAR(100),
@@ -26,12 +26,13 @@ CREATE TABLE IF NOT EXISTS weather (
     precipitation_sum DOUBLE PRECISION,
     temperature_2m_min DOUBLE PRECISION,
     temperature_2m_max DOUBLE PRECISION,
-    time DATE
+    time DATE,
+    UNIQUE (city_id, time)
 );
 
 CREATE TABLE IF NOT EXISTS weather_features (
     feature_id SERIAL PRIMARY KEY,
-    weather_id INTEGER REFERENCES weather(weather_id),
+    weather_id INTEGER REFERENCES weather(weather_id) UNIQUE,
     temp_category VARCHAR(20),
     prec_category VARCHAR(20),
     wind_category VARCHAR(20),
@@ -41,7 +42,3 @@ CREATE TABLE IF NOT EXISTS weather_features (
     risk_score INTEGER,
     risk_level VARCHAR(20)
 );
-
--- SELECT COUNT(*) FROM cities;
--- SELECT COUNT(*) FROM weather;
--- SELECT COUNT(*) FROM weather_features;

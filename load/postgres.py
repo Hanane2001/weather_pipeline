@@ -11,10 +11,12 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-def load_data():
-    cities_df = pd.read_csv("data/bronze/cities_raw.csv")
-    weather_df = pd.read_csv("data/silver/weather_clean.csv")
-    features_df = pd.read_csv("data/gold/weather_features.csv")
+print("DB_HOST =", DB_HOST)
+print("DB_PORT =", DB_PORT)
+print("DB_NAME =", DB_NAME)
+print("DB_USER =", DB_USER)
+print("DB_PASSWORD =", DB_PASSWORD)
+def get_connection():
     connect = psycopg2.connect(
         host=DB_HOST,
         port=DB_PORT,
@@ -22,13 +24,19 @@ def load_data():
         user=DB_USER,
         password=DB_PASSWORD
     )
-    print("connection with postgres is succesful") 
+    return connect
+
+def load_data():
+    cities_df = pd.read_csv("data/bronze/cities_raw.csv")
+    weather_df = pd.read_csv("data/silver/weather_clean.csv")
+    features_df = pd.read_csv("data/gold/weather_features.csv")
+    connect = get_connection()
+
     cursor = connect.cursor()
     with open("sql/schema.sql", "r", encoding="utf-8") as f:
-        sc = f.read()
-    cursor.execute(sc)
-    
-    print("Tables created successfully!")
+        cursor.execute(f.read())
+    cursor.execute("TRUNCATE TABLE weather_features, weather, cities RESTART IDENTITY CASCADE;")
+
     data_cities = cities_df[[
         "city",
         "lat",
@@ -73,16 +81,17 @@ def load_data():
     """, data_weather)
 
     cursor.execute("""
-        select weather_id from weather order by weather_id
+        select weather_id, city_id, time from weather
     """)
 
-    weather_ids = []
-    for row in cursor.fetchall():
-        weather_ids.append(row[0])
+    weather_map = {}
+    for weather_id, city_id, time in cursor.fetchall():
+        weather_map[(city_id, str(time))] = weather_id
 
     data_features = []
-    for i, (_, row) in enumerate(features_df.iterrows()):
-        weather_id = weather_ids[i]
+    for _, row in features_df.iterrows():
+        city_id = city_ids[row["city"]]
+        weather_id = weather_map[(city_id, str(row["time"]))]
         data_features.append([
             weather_id,
             row["temp_category"],
@@ -95,7 +104,6 @@ def load_data():
             row["risk_level"]
         ])
 
-
     cursor.executemany("""
         INSERT INTO weather_features(weather_id, temp_category, prec_category, wind_category, risk_temp, risk_prec, risk_wind, risk_score, risk_level) values(%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, data_features)
@@ -104,7 +112,5 @@ def load_data():
     cursor.close()
     connect.close()
     print("Data loaded successfully!")
-
-    
 
 load_data()

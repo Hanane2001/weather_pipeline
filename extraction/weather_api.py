@@ -1,21 +1,22 @@
 import pandas as pd
 import requests as rq
 import json
+import os
 
 def get_weather():
-    url = "https://api.open-meteo.com/v1/forecast?latitude=33.5883&longitude=-7.6114&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,precipitation_probability_max,precipitation_sum,weather_code&timezone=auto&forecast_days=1"
+    url = "https://api.open-meteo.com/v1/forecast"
     out = "data/bronze/weather_api.json"
     source = "data/bronze/cities_raw.csv"
-    df = pd.read_csv(source)
-    try:
-        for i in range(len(df)):
-            city = df["city"].iloc[i]
-            lat = df["lat"].iloc[i]
-            lng = df["lng"].iloc[i]
+    os.makedirs("data/bronze", exist_ok=True)
 
+    df = pd.read_csv(source)
+    results = []
+
+    for _, row in df.iterrows():
+        try:
             params = {
-                "latitude": lat,
-                "longitude": lng,
+                "latitude": row["lat"],
+                "longitude": row["lng"],
                 "daily": [
                     "temperature_2m_max",
                     "temperature_2m_min",
@@ -26,22 +27,24 @@ def get_weather():
                     "weather_code"
                 ],
                 "timezone": "auto",
-                "forecast_days": 1
+                "forecast_days": 7
             }
 
             res = rq.get(url, params=params, timeout=30)
-            if res.status_code != 200:
-                raise Exception("request problem")
+            res.raise_for_status()
             data = res.json()
-            print(data)
-    except Exception as e:
-        print(f"erreur: {e}")
-    except rq.Timeout:
-        print("request time out")
-    except rq.ConnectionError:
-        print("connection timed out")
-    except rq.ReadTimeout:
-        print("server took too long to respond")
+            data["city"] = row["city"]
+            results.append(data)
+            # print(f"OK : {row['city']}")
+        except rq.Timeout:
+            print(f"Timeout : {row['city']}")
+        except rq.HTTPError as e:
+            print(f"HTTP erreur {row['city']} : {e}")
+        except Exception as e:
+            print(f"Erreur {row['city']} : {e}")
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False)
+    print(f"OK : {out}")
 
-
-get_weather()
+if __name__ == "__main__":
+    get_weather()

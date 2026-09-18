@@ -1,25 +1,24 @@
 import pandas as pd
-# import numpy as np
+import os
 import requests as rq
 
 def get_cities():
     url = "https://simplemaps.com/static/data/country-cities/ma/ma.csv"
     out = "data/bronze/cities_raw.csv"
+    os.makedirs("data/bronze", exist_ok=True)
 
     try:
         res = rq.get(url, timeout=30)
-        if res.status_code != 200:
-            raise Exception("request problem")
+        res.raise_for_status()
         with open(out, "wb") as f:
             f.write(res.content)
-    except Exception as e:
-        print(f"erreur: {e}")
+        print(f"ok : {out}")
     except rq.Timeout:
-        print("request time out")
-    except rq.ConnectionError:
-        print("connection timed out")
-    except rq.ReadTimeout:
-        print("server took too long to respond")
+        print("Erreur : timeout")
+    except rq.HTTPError as e:
+        print(f"Erreur HTTP : {e}")
+    except Exception as e:
+        print(f"Erreur : {e}")
 
-
-get_cities()
+if __name__ == "__main__":
+    get_cities()
