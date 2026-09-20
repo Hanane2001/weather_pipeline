@@ -24,12 +24,10 @@ data/gold/*
 !data/gold/.gitkeep
 
 # Logs
-logs/
-*.log
+airflow/logs/
 
 # Streamlit
-.streamlit/secrets.toml
-
+.streamlit/
 # IDE
 .vscode/
 .idea/

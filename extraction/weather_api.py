@@ -35,7 +35,6 @@ def get_weather():
             data = res.json()
             data["city"] = row["city"]
             results.append(data)
-            # print(f"OK : {row['city']}")
         except rq.Timeout:
             print(f"Timeout : {row['city']}")
         except rq.HTTPError as e:

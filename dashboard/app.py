@@ -784,8 +784,8 @@ else:
         </div>
     </div>
     """
-m.get_root().html.add_child(folium.Element(legend_html))
-st_folium(m, use_container_width=True, height=520, returned_objects=[])
+    m.get_root().html.add_child(folium.Element(legend_html))
+    st_folium(m, use_container_width=True, height=520, returned_objects=[])
 
 
 section_title("Risk analysis by city", icon_name="shield-alert")
